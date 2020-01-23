@@ -8,10 +8,6 @@ local _timer_Create = (CLIENT && timer.Create or NULL)
 local _surface_CreateFont = (CLIENT && surface.CreateFont or NULL)
 local _LocalPlayer = (CLIENT && LocalPlayer or NULL)
 local _draw_RoundedBoxEx = (CLIENT && draw.RoundedBoxEx or NULL)
-local _surface_SetTextColor = (CLIENT && surface.SetTextColor or NULL)
-local _surface_SetTextPos = (CLIENT && surface.SetTextPos or NULL)
-local _surface_SetFont = (CLIENT && surface.SetFont or NULL)
-local _surface_DrawText = (CLIENT && surface.DrawText or NULL)
 local _draw_SimpleText = (CLIENT && draw.SimpleText or NULL)
 local _Color = (CLIENT && Color or NULL)
 -- Client Convars to manipulate the hud.
@@ -92,48 +88,63 @@ local propCounterLocationX = nil
 local propCounterLocationY = nil
 local propCount = 0
 local propTextPosChange = 0.064
--- Special thanks to GlorifiedPig for helping me fix the props counter. http://steamcommunity.com/profiles/76561198073308340
-_timer_Create("propcounter_update_propcount", 0.50, 0, function()
-  local propEntsCount = _LocalPlayer():GetCount( "props" )
-  propCount = propEntsCount
-  if propCount < 10 then
-    propTextPosChange = 0.064
-  elseif propCount >= 10 && propCount <= 99 then
-    propTextPosChange = 0.0635
-  elseif propCount >= 100 && propCount <= 999 then
-    propTextPosChange = 0.06265
-  else
-    propTextPosChange = 0.0630
-  end
+
+_hook_Add("InitPostEntity", "ClientPropCounterSpawnHook", function()
+  -- Special thanks to GlorifiedPig for helping me fix the props counter. http://steamcommunity.com/profiles/76561198073308340
+  _timer_Create("propcounter_update_propcount", 0.50, 0, function()
+    local propEntsCount = _LocalPlayer():GetCount( "props" )
+    propCount = propEntsCount
+    if propCount < 10 then
+      propTextPosChange = 0.064
+    elseif propCount >= 10 && propCount <= 99 then
+      propTextPosChange = 0.0635
+    elseif propCount >= 100 && propCount <= 999 then
+      propTextPosChange = 0.06265
+    else
+      propTextPosChange = 0.0630
+    end
+  end)
 end)
 
-_hook_Add("HUDPaint", "ClientPropCounter", function()
+_hook_Add("HUDPaint", "ClientPropCounterHUDHook", function()
   local hud_position = _GetConVar("propcounter_position"):GetInt()
   if hud_position == 1 then
     propCounterHeadLocationX = _ScrW() * .010
     propCounterHeadLocationY = _ScrH() * .02
-    propCounterHeadTextLocationX = _ScrW() * .0129
-    propCounterHeadTextLocationY = _ScrH() * .023
+    propCounterHeadTextLocationX = _ScrW() * .0345
+    propCounterHeadTextLocationY = _ScrH() * .0295
     propCounterLocationX = propCounterHeadLocationX
-    propCounterLocationY = _ScrH() * .041
+    if _ScrH() < 1080 && _ScrW() < 1920 then
+      propCounterLocationY = _ScrH() * .040
+    else
+      propCounterLocationY = _ScrH() * .041
+    end
     propCounterTextLocationX = _ScrW() * (propTextPosChange - 0.0283)
     propCounterTextLocationY = _ScrH() * 0.0546
   elseif hud_position == 2 then
     propCounterHeadLocationX = _ScrW() * .4755
     propCounterHeadLocationY = _ScrH() * .02
     propCounterLocationX = propCounterHeadLocationX
-    propCounterLocationY = _ScrH() * .041
-    propCounterHeadTextLocationX = _ScrW() * .4785
-    propCounterHeadTextLocationY = _ScrH() * .022
+    if _ScrH() < 1080 && _ScrW() < 1920 then
+      propCounterLocationY = _ScrH() * .040
+    else
+      propCounterLocationY = _ScrH() * .041
+    end
+    propCounterHeadTextLocationX = _ScrW() * .5008
+    propCounterHeadTextLocationY = _ScrH() * .03
     propCounterTextLocationX = _ScrW() * (propTextPosChange + 0.4368)
     propCounterTextLocationY = _ScrH() * 0.0546
   elseif hud_position == 3 then
     propCounterHeadLocationX = _ScrW() * .94
     propCounterHeadLocationY = _ScrH() * .02
     propCounterLocationX = propCounterHeadLocationX
-    propCounterLocationY = _ScrH() * .041
-    propCounterHeadTextLocationX = _ScrW() * .943
-    propCounterHeadTextLocationY = _ScrH() * .022
+    if _ScrH() < 1080 && _ScrW() < 1920 then
+      propCounterLocationY = _ScrH() * .040
+    else
+      propCounterLocationY = _ScrH() * .041
+    end
+    propCounterHeadTextLocationX = _ScrW() * .965
+    propCounterHeadTextLocationY = _ScrH() * .028
     propCounterTextLocationX = _ScrW() * (propTextPosChange + 0.9022)
     propCounterTextLocationY = _ScrH() * 0.0546
   elseif hud_position == 4 then
@@ -141,8 +152,8 @@ _hook_Add("HUDPaint", "ClientPropCounter", function()
     propCounterHeadLocationY = _ScrH() * .451
     propCounterLocationX = propCounterHeadLocationX
     propCounterLocationY = _ScrH() * .471
-    propCounterHeadTextLocationX = _ScrW() * .0129
-    propCounterHeadTextLocationY = _ScrH() * 0.453
+    propCounterHeadTextLocationX = _ScrW() * .0345
+    propCounterHeadTextLocationY = _ScrH() * 0.460
     propCounterTextLocationX = _ScrW() * (propTextPosChange - 0.0283)
     propCounterTextLocationY = _ScrH() * 0.486
   elseif hud_position == 5 then
@@ -150,45 +161,54 @@ _hook_Add("HUDPaint", "ClientPropCounter", function()
     propCounterHeadLocationY = _ScrH() * .451
     propCounterLocationX = propCounterHeadLocationX
     propCounterLocationY = _ScrH() * .471
-    propCounterHeadTextLocationX = _ScrW() * .943
-    propCounterHeadTextLocationY = _ScrH() * 0.4539
+    propCounterHeadTextLocationX = _ScrW() * .965
+    propCounterHeadTextLocationY = _ScrH() * 0.459
     propCounterTextLocationX = _ScrW() * (propTextPosChange + 0.9022)
     propCounterTextLocationY = _ScrH() * 0.486
   elseif hud_position == 6 then
     propCounterHeadLocationX = _ScrW() * .010
     propCounterHeadLocationY = _ScrH() * .8415
     propCounterLocationX = propCounterHeadLocationX
-    propCounterLocationY = _ScrH() * .862
-    propCounterHeadTextLocationX = _ScrW() * .0129
-    propCounterHeadTextLocationY = _ScrH() * 0.843
+    if _ScrH() < 1080 && _ScrW() < 1920 then
+      propCounterLocationY = _ScrH() * .861
+    else
+      propCounterLocationY = _ScrH() * .862
+    end
+    propCounterHeadTextLocationX = _ScrW() * .0345
+    propCounterHeadTextLocationY = _ScrH() * 0.849
     propCounterTextLocationX = _ScrW() * (propTextPosChange - 0.0283)
     propCounterTextLocationY = _ScrH() * 0.8765
   elseif hud_position == 7 then
     propCounterHeadLocationX = _ScrW() * .4755
     propCounterHeadLocationY = _ScrH() * .92
     propCounterLocationX = propCounterHeadLocationX
-    propCounterLocationY = _ScrH() * .941
-    propCounterHeadTextLocationX = _ScrW() * .4785
-    propCounterHeadTextLocationY = _ScrH() * 0.922
+    if _ScrH() < 1080 && _ScrW() < 1920 then
+      propCounterLocationY = _ScrH() * .940
+    else
+      propCounterLocationY = _ScrH() * .941
+    end
+    propCounterHeadTextLocationX = _ScrW() * .5
+    propCounterHeadTextLocationY = _ScrH() * 0.93
     propCounterTextLocationX = _ScrW() * (propTextPosChange + 0.4368)
     propCounterTextLocationY = _ScrH() * 0.956
   elseif hud_position == 8 then
     propCounterHeadLocationX = _ScrW() * .94
     propCounterHeadLocationY = _ScrH() * .92
     propCounterLocationX = propCounterHeadLocationX
-    propCounterLocationY = _ScrH() * .941
-    propCounterHeadTextLocationX = _ScrW() * .943
-    propCounterHeadTextLocationY = _ScrH() * 0.9225
+    if _ScrH() < 1080 && _ScrW() < 1920 then
+      propCounterLocationY = _ScrH() * .940
+    else
+      propCounterLocationY = _ScrH() * .941
+    end
+    propCounterHeadTextLocationX = _ScrW() * .965
+    propCounterHeadTextLocationY = _ScrH() * 0.93
     propCounterTextLocationX = _ScrW() * (propTextPosChange + 0.9023)
     propCounterTextLocationY = _ScrH() * 0.956
   end
-  _draw_RoundedBoxEx(5,propCounterHeadLocationX, propCounterHeadLocationY, propCounterHeadWidth, propCounterHeadHeight, _Color( rgba_head_red, rgba_head_green, rgba_head_blue, rgba_head_alpha ), true, true, false, false)
+  _draw_RoundedBoxEx(3,propCounterHeadLocationX, propCounterHeadLocationY, propCounterHeadWidth, propCounterHeadHeight, _Color( rgba_head_red, rgba_head_green, rgba_head_blue, rgba_head_alpha ), true, true, false, false)
   _draw_RoundedBoxEx(1,propCounterLocationX, propCounterLocationY, propCounterWidth, propCounterHeight, _Color( rgba_red, rgba_green, rgba_blue, rgba_alpha ), false, false, true, true)
   _draw_SimpleText( propCount, "PropCounterText", propCounterTextLocationX, propCounterTextLocationY,_Color( rgba_red_text, rgba_green_text, rgba_blue_text , rgba_alpha_text ), 1, 1)
-  _surface_SetTextColor(rgba_headtext_red, rgba_headtext_green, rgba_headtext_blue, rgba_headtext_alpha)
-  _surface_SetTextPos( propCounterHeadTextLocationX, propCounterHeadTextLocationY )
-  _surface_SetFont( "PropCounterHeadText" )
-  _surface_DrawText( "Prop Count")
+  _draw_SimpleText( "Prop Count", "PropCounterHeadText", propCounterHeadTextLocationX, propCounterHeadTextLocationY,_Color( rgba_headtext_red, rgba_headtext_green, rgba_headtext_blue , rgba_headtext_alpha ), 1, 1)
 end)
 _cvars_AddChangeCallback("propcounter_position", function(convar_name, value_old, value_new)
   if value_new == value_old then return end
