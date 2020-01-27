@@ -69,7 +69,7 @@ local propCounterLocationY = nil
 local propCount = 0
 local propTextPosChange = 0.064
 local PropCountFunction = function()
-  -- Special thanks to GlorifiedPig for helping me fix the props counter. http://steamcommunity.com/profiles/76561198073308340
+  -- Special thanks to GlorifiedPig for helping me fix the prop counter. http://steamcommunity.com/profiles/76561198073308340
   _timer_Create("propcounter_update_propcount", 0.50, 0, function()
     local propEntsCount = _LocalPlayer():GetCount( "props" )
     propCount = propEntsCount
