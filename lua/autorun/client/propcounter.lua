@@ -11,6 +11,35 @@ local l_Cr = (CLIENT && Color or NULL)
 local l_tnr = (CLIENT && tonumber or NULL)
 local l_sgb = (CLIENT && string.gsub or NULL)
 
+-- Converts the HEX code to RGB format.
+-- Thank to https://gist.github.com/fernandohenriques/12661bf250c8c2d8047188222cab7e28
+-- I modified it to work properly, the one at the above URL didn't work at all.
+local function hex2rgb(hex)
+  local hex = hex:gsub("#","")
+  if hex:len() == 3 then
+      local color_r = l_tnr("0x" .. hex:sub(1,1)) * 17
+      local color_g = l_tnr("0x" .. hex:sub(2,2)) * 17
+      local color_b = l_tnr("0x" .. hex:sub(3,3)) * 17
+      l_sgb(color_r," ")
+      l_sgb(color_g," ")
+      l_sgb(color_b," ")
+      local rgbTable = {[r] = color_r,[g] = color_g,[b] = color_b}
+    return rgbTable
+  else
+      local color_r = l_tnr("0x" .. hex:sub(1,2))
+      local color_g = l_tnr("0x" .. hex:sub(3,4))
+      local color_b = l_tnr("0x" .. hex:sub(5,6))
+      l_sgb(color_r," ","")
+      l_sgb(color_g," ","")
+      l_sgb(color_b," ","")
+      local rgbTable = {}
+      rgbTable["r"] = color_r
+      rgbTable["g"] = color_g
+      rgbTable["b"] = color_b
+    return rgbTable
+  end
+end
+
 -- Client Convars to manipulate the hud.
 l_CCCVr("propcounter_position", 1, true, false, "The position that the HUD is in.", 1, 8 )
 l_CCCVr("propcounter_hud_head_alpha", 255, true, false, "Top UI Bar Transparency/Opacity: 0-255", 0, 255 )
@@ -27,34 +56,7 @@ local rgba_headtext_alpha = l_GCVr("propcounter_hud_head_textalpha"):GetInt()
 local rgba_alpha = l_GCVr("propcounter_hud_alpha"):GetInt()
 local rgba_alpha_text = l_GCVr("propcounter_hud_textalpha"):GetInt()
 
--- Converts the HEX code to RGB format.
--- Thank to https://gist.github.com/fernandohenriques/12661bf250c8c2d8047188222cab7e28
--- I modified it to work properly, the one at the above URL didn't work at all.
-local function hex2rgb(hex)
-    local hex = hex:gsub("#","")
-    if hex:len() == 3 then
-        local color_r = l_tnr("0x" .. hex:sub(1,1)) * 17
-        local color_g = l_tnr("0x" .. hex:sub(2,2)) * 17
-        local color_b = l_tnr("0x" .. hex:sub(3,3)) * 17
-        l_sgb(color_r," ")
-        l_sgb(color_g," ")
-        l_sgb(color_b," ")
-        local rgbTable = {[r] = color_r,[g] = color_g,[b] = color_b}
-      return rgbTable
-    else
-        local color_r = l_tnr("0x" .. hex:sub(1,2))
-        local color_g = l_tnr("0x" .. hex:sub(3,4))
-        local color_b = l_tnr("0x" .. hex:sub(5,6))
-        l_sgb(color_r," ","")
-        l_sgb(color_g," ","")
-        l_sgb(color_b," ","")
-        local rgbTable = {}
-        rgbTable["r"] = color_r
-        rgbTable["g"] = color_g
-        rgbTable["b"] = color_b
-      return rgbTable
-    end
-end
+
 
 local propCounterHeadHeight = ScrH() * .020
 local propCounterHeadWidth = ScrW() * .05
@@ -87,11 +89,10 @@ l_sCFt( "PropCounterText", {
 })
 
 -- Default Colors Using HEX to RGB Conversion
-local propcounter_hudcolor_main = l_GCVr("propcounter_hudcolor_main"):GetString() or "#ffffff"
-local propcounter_hudcolor_maintext = l_GCVr("propcounter_hudcolor_maintext"):GetString() or "#00bfff"
-local propcounter_hudcolor_head = l_GCVr("propcounter_hudcolor_head"):GetString() or "#00bfff"
-local propcounter_hudcolor_headtext = l_GCVr("propcounter_hudcolor_headtext"):GetString() or "#ffffff"
-
+local propcounter_hudcolor_main = hex2rgb(l_GCVr("propcounter_hudcolor_main"):GetString() or "#ffffff")
+local propcounter_hudcolor_maintext = hex2rgb(l_GCVr("propcounter_hudcolor_maintext"):GetString() or "#00bfff")
+local propcounter_hudcolor_head = hex2rgb(l_GCVr("propcounter_hudcolor_head"):GetString() or "#00bfff")
+local propcounter_hudcolor_headtext = hex2rgb(l_GCVr("propcounter_hudcolor_headtext"):GetString() or "#ffffff")
 -- Adjusts the huds position when it changes.
 local SetPropCounterHudPos = function(hud_position)
   local l_ScW = ScrW
@@ -189,10 +190,10 @@ end
 
 l_hAd("HUDPaint", "ClientPropCounterHUDHook", function()
   local AdjustHUDPos = SetPropCounterHudPos(l_GCVr("propcounter_position"):GetInt())
-  local mainHUDColor = hex2rgb(propcounter_hudcolor_main)
-  local mainHUDTextColor = hex2rgb(propcounter_hudcolor_maintext)
-  local headHUDColor = hex2rgb(propcounter_hudcolor_head)
-  local headHUDTextColor = hex2rgb(propcounter_hudcolor_headtext)
+  local mainHUDColor = propcounter_hudcolor_main
+  local mainHUDTextColor = propcounter_hudcolor_maintext
+  local headHUDColor = propcounter_hudcolor_head
+  local headHUDTextColor = propcounter_hudcolor_headtext
   -- Top Color Bar - Says "Prop Count"
   l_dRBEx(3,AdjustHUDPos["propCHLX"], AdjustHUDPos["propCHLY"], propCounterHeadWidth, propCounterHeadHeight, l_Cr(headHUDColor["r"],headHUDColor["g"],headHUDColor["b"], rgba_head_alpha ), true, true, false, false)
   -- Main UI Box
@@ -224,17 +225,17 @@ l_cACCk("propcounter_hud_textalpha", function(convar_name, value_old, value_new)
 end)
 l_cACCk("propcounter_hudcolor_main", function(convar_name, value_old, value_new)
   if value_new == value_old then return end
-  propcounter_hudcolor_main = value_new
+  propcounter_hudcolor_main = hex2rgb(value_new)
 end)
 l_cACCk("propcounter_hudcolor_head", function(convar_name, value_old, value_new)
   if value_new == value_old then return end
-  propcounter_hudcolor_head = value_new
+  propcounter_hudcolor_head = hex2rgb(value_new)
 end)
 l_cACCk("propcounter_hudcolor_maintext", function(convar_name, value_old, value_new)
   if value_new == value_old then return end
-  propcounter_hudcolor_maintext = value_new
+  propcounter_hudcolor_maintext = hex2rgb(value_new)
 end)
 l_cACCk("propcounter_hudcolor_headtext", function(convar_name, value_old, value_new)
   if value_new == value_old then return end
-  propcounter_hudcolor_headtext = value_new
+  propcounter_hudcolor_headtext = hex2rgb(value_new)
 end)
