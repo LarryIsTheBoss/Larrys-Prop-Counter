@@ -135,10 +135,9 @@ hook_Add("OnScreenSizeChanged", "PropCounterAdjustSize",function()
 	_ScrW, _fScrW = ScrW(),ScrW()
 	_ScrH = ScrH()
 	print("Larry's Prop Counter: Screen size has changed from " .. old_ScrW .. 'x' .. old_ScrH .. ' to ' .. _ScrW .. 'x' .. _ScrH)
-	--fonts["LarrysPropCounterText"].size = (_ScrW * .015) * propScale
 	generateFonts()
 	hook.Remove( "HUDPaint", "PropCounterHUDHook2023" )
-	timer.Simple( 1, function()  hook_Add("HUDPaint", "PropCounterHUDHook2023", function() pcHUD() end) end)
+	hook_Add("HUDPaint", "PropCounterHUDHook2023", function() pcHUD() end)
 end)
 
 -- Creates Larry's Prop Counter Category
@@ -257,7 +256,7 @@ hook_Add( "PopulateToolMenu", "PropCounterSettings", function()
 				fonts["LarrysPropCounterText"].size = (_ScrW * .015) * propScale
 				generateFonts()
 				hook.Remove( "HUDPaint", "PropCounterHUDHook2023" )
-				timer.Simple( 1, function() hook_Add("HUDPaint", "PropCounterHUDHook2023", function() pcHUD() end) end)
+				hook_Add("HUDPaint", "PropCounterHUDHook2023", function() pcHUD() end)
 			end
 		LarrysPropCounterSettings:AddItem(ScaleSlider)
 		-- Creates a Checkbox that allows you to enable or disable the HUD.
@@ -290,7 +289,7 @@ hook_Add( "PopulateToolMenu", "PropCounterSettings", function()
 				Get_ConVar("lpc_verticallocation"):SetInt(HudSettings["DefaultVerticalLocation"]); Get_ConVar("lpc_horizontallocation"):SetInt(HudSettings["DefaultHorizontalLocation"])
 				generateFonts()
 				hook.Remove( "HUDPaint", "PropCounterHUDHook2023" )
-				timer.Simple( 1, function()  hook_Add("HUDPaint", "PropCounterHUDHook2023", function() pcHUD() end) end)
+				hook_Add("HUDPaint", "PropCounterHUDHook2023", function() pcHUD() end)
 			end
 		LarrysPropCounterSettings:AddItem(ResetHUDSettings)
 		-- Creates a button that resets clients HUD color settings to config defaults.
