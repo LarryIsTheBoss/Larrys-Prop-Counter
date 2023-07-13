@@ -1,10 +1,8 @@
---[[
-This addon is created and maintained by QuirkyLarry.
+--[[This addon is created and maintained by QuirkyLarry.
 Discord: quirkylarry
 Steam: https://steamcommunity.com/id/QuirkyLarry/
 Please do not re-upload without permission.
-You may contact me for questions, suggestions, or addon requests.
-]]--
+You may contact me for questions, suggestions, or addon requests.]]--
 
 local HudSettings = {
 	-- Sets the HUD as enabled or disable by default. 1 = enabled, 0 = disabled.
@@ -73,8 +71,8 @@ Create_ClientConVar("lpc_headertextcolor_r", HudSettings.HeaderTextColor['r'], t
 Create_ClientConVar("lpc_headertextcolor_g", HudSettings.HeaderTextColor['g'], true, false, "", 0, 255 )
 Create_ClientConVar("lpc_headertextcolor_b", HudSettings.HeaderTextColor['b'], true, false, "", 0, 255 )
 Create_ClientConVar("lpc_backgroundtextcolor_r", HudSettings.BackgroundTextColor['r'], true, false, "", 0, 255 )
-Create_ClientConVar("lpc_backgroundtextcolor_g", HudSettings.BackgroundTextColor['r'], true, false, "", 0, 255 )
-Create_ClientConVar("lpc_backgroundtextcolor_b", HudSettings.BackgroundTextColor['r'], true, false, "", 0, 255 )
+Create_ClientConVar("lpc_backgroundtextcolor_g", HudSettings.BackgroundTextColor['g'], true, false, "", 0, 255 )
+Create_ClientConVar("lpc_backgroundtextcolor_b", HudSettings.BackgroundTextColor['b'], true, false, "", 0, 255 )
 
 local hudenabled, rainbowBarf, propScale = Get_ConVar("lpc_hudenabled"):GetBool(), Get_ConVar("lpc_rainbowbarf"):GetBool(), Get_ConVar("lpc_scale"):GetFloat()
 local vLocation, hLocation = Get_ConVar("lpc_verticallocation"):GetInt(), Get_ConVar("lpc_horizontallocation"):GetInt()
@@ -113,7 +111,7 @@ local function pcHUD()
 	local pcpropText,count  = "Props: ",LocalPlayer():GetCount("props") or 0
 	local tw, th = surface.GetTextSize(pcpropText)
 	local ptw, pth = surface.GetTextSize(tostring(count))
-	if not rainbowBarf then surface_SetDrawColor(hr,hg,hb,ha) else surface_SetDrawColor(HSVToColor(  ( CurTime() * 400 ) % 360, 1, 1 )) end
+	if not rainbowBarf then surface_SetDrawColor(hr,hg,hb,ha) elseif rainbowBarf then surface_SetDrawColor(HSVToColor(  ( CurTime() * 400 ) % 360, 1, 1 )) end
 	surface_DrawRect(hLocation, vLocation, tw, th + 3)
 	surface_SetTextColor(htr,htg,htb)
 	surface_SetTextPos(hLocation + 1, vLocation + 1.5)
@@ -219,6 +217,7 @@ hook_Add( "PopulateToolMenu", "PropCounterSettings", function()
 	end )
 	-- Adds prop counter settings q-menu.
 	spawnmenu.AddToolMenuOption( "Utilities", "#Larry's Prop Counter", "Prop_Counter_Settings", "#Prop Counter Settings", "", "", function(LarrysPropCounterSettings)
+		-- Creates a slider that allows you to select the vertical location releative to your screen height.
 		local VerticalSlider = vgui.Create("DNumSlider")
 			VerticalSlider:SetText("Vertical Location Slider")
 			VerticalSlider.Label:SetDark(true)
@@ -231,7 +230,7 @@ hook_Add( "PopulateToolMenu", "PropCounterSettings", function()
 				GetConVar("lpc_verticallocation"):SetInt(value)
 			end
 		LarrysPropCounterSettings:AddItem(VerticalSlider)
-
+		-- Creates a slider that allows you to select the horizontal location releative to your screen width.
 		local HorizontalSlider = vgui.Create("DNumSlider")
 			HorizontalSlider:SetText("Horizontal Location Slider")
 			HorizontalSlider.Label:SetDark(true)
@@ -244,7 +243,7 @@ hook_Add( "PopulateToolMenu", "PropCounterSettings", function()
 				GetConVar("lpc_horizontallocation"):SetInt(value)
 			end
 		LarrysPropCounterSettings:AddItem(HorizontalSlider)
-
+		-- Creates a slider that allows you to change the size of the HUD.
 		local ScaleSlider = vgui.Create("DNumSlider")
 			ScaleSlider:SetText("Horizontal Location Slider")
 			ScaleSlider.Label:SetDark(true)
@@ -261,7 +260,7 @@ hook_Add( "PopulateToolMenu", "PropCounterSettings", function()
 				timer.Simple( 1, function() hook_Add("HUDPaint", "PropCounterHUDHook2023", function() pcHUD() end) end)
 			end
 		LarrysPropCounterSettings:AddItem(ScaleSlider)
-
+		-- Creates a Checkbox that allows you to enable or disable the HUD.
 		local EnablePropCounterButton = vgui.Create("DCheckBoxLabel")
 			EnablePropCounterButton:SetText("Enable/Disable Prop Counter")
 			EnablePropCounterButton.Label:SetDark(true)
@@ -271,22 +270,22 @@ hook_Add( "PopulateToolMenu", "PropCounterSettings", function()
 				GetConVar("lpc_hudenabled"):SetBool(value)
 			end
 		LarrysPropCounterSettings:AddItem(EnablePropCounterButton)
-
+		-- Creates a Checkbox that allows you to enable or disable the Rainbow effect.
 		local EnableRainbowBarfButton = vgui.Create("DCheckBoxLabel")
 			EnableRainbowBarfButton:SetText("Enable/Disable Rainbow Barf")
 			EnableRainbowBarfButton.Label:SetDark(true)
-			EnableRainbowBarfButton:SetValue(rainbowBarf)
+			EnableRainbowBarfButton:SetValue(tobool(rainbowBarf))
 			EnableRainbowBarfButton.OnChange = function(self, value)
-				rainbowBarf = value
+				rainbowBarf = tobool(value)
 				GetConVar("lpc_rainbowbarf"):SetBool(value)
 			end
 		LarrysPropCounterSettings:AddItem(EnableRainbowBarfButton)
-
+		-- Creates a button that resets clients settings to config defaults.
 		local ResetHUDSettings = vgui.Create("DButton")
 			ResetHUDSettings:SetText("Reset Settings to default.")
 			ResetHUDSettings.DoClick = function(self, value)
-				hudenabled, rainbowBarf, propScale = HudSettings["HUDEnable"],HudSettings["RainbowEnable"],HudSettings["DefaultScale"]
-				Get_ConVar("lpc_hudenabled"):SetInt(HudSettings["HUDEnable"]); Get_ConVar("lpc_rainbowbarf"):SetInt(HudSettings["RainbowEnable"]); Get_ConVar("lpc_scale"):SetFloat(HudSettings["DefaultScale"])
+				hudenabled, rainbowBarf, propScale = tobool(HudSettings["HUDEnable"]),tobool(HudSettings["RainbowEnable"]),HudSettings["DefaultScale"]
+				Get_ConVar("lpc_hudenabled"):SetBool(tobool(HudSettings["HUDEnable"])); Get_ConVar("lpc_rainbowbarf"):SetBool(tobool(HudSettings["RainbowEnable"])); Get_ConVar("lpc_scale"):SetFloat(HudSettings["DefaultScale"])
 				vLocation, hLocation = HudSettings["DefaultVerticalLocation"],HudSettings["DefaultHorizontalLocation"]
 				Get_ConVar("lpc_verticallocation"):SetInt(HudSettings["DefaultVerticalLocation"]); Get_ConVar("lpc_horizontallocation"):SetInt(HudSettings["DefaultHorizontalLocation"])
 				generateFonts()
@@ -294,5 +293,23 @@ hook_Add( "PopulateToolMenu", "PropCounterSettings", function()
 				timer.Simple( 1, function()  hook_Add("HUDPaint", "PropCounterHUDHook2023", function() pcHUD() end) end)
 			end
 		LarrysPropCounterSettings:AddItem(ResetHUDSettings)
+		-- Creates a button that resets clients HUD color settings to config defaults.
+		local ResetHUDColorSettings = vgui.Create("DButton")
+			ResetHUDColorSettings:SetText("Reset HUD Color Settings to default.")
+			ResetHUDColorSettings.DoClick = function(self, value)
+				-- Resets HUD Header Header color.
+				hr,hg,hb,ha = HudSettings.HeaderColor['r'],HudSettings.HeaderColor['g'],HudSettings.HeaderColor['b'],HudSettings.HeaderColor['a']
+				Get_ConVar("lpc_headercolor_r"):SetInt(HudSettings.HeaderColor['r']); Get_ConVar("lpc_headercolor_g"):SetInt(HudSettings.HeaderColor['g']); Get_ConVar("lpc_headercolor_b"):SetInt(HudSettings.HeaderColor['b']); Get_ConVar("lpc_headercolor_a"):SetInt(HudSettings.HeaderColor['a'])
+				-- Resets HUD Header Text color.
+				htr,htg,htb = HudSettings.HeaderTextColor['r'],HudSettings.HeaderTextColor['g'],HudSettings.HeaderTextColor['b']
+				Get_ConVar("lpc_headertextcolor_r"):SetInt(HudSettings.HeaderTextColor['r']); Get_ConVar("lpc_headertextcolor_g"):SetInt(HudSettings.HeaderTextColor['g']); Get_ConVar("lpc_headertextcolor_b"):SetInt(HudSettings.HeaderTextColor['b'])
+				-- Resets HUD Background color.
+				bgr,bgg,bgb,bga = HudSettings.BackgroundColor['r'],HudSettings.BackgroundColor['g'],HudSettings.BackgroundColor['b'],HudSettings.BackgroundColor['a']
+				Get_ConVar("lpc_backgroundcolor_r"):SetInt(HudSettings.BackgroundColor['r']); Get_ConVar("lpc_backgroundcolor_g"):SetInt(HudSettings.BackgroundColor['g']); Get_ConVar("lpc_backgroundcolor_b"):SetInt(HudSettings.BackgroundColor['b']); Get_ConVar("lpc_backgroundcolor_a"):SetInt(HudSettings.BackgroundColor['a'])
+				-- Resets HUD Background Text color.
+				bgtr,bgtg,bgtb = HudSettings.BackgroundTextColor['r'],HudSettings.BackgroundTextColor['g'],HudSettings.BackgroundTextColor['b']
+				Get_ConVar("lpc_backgroundtextcolor_r"):SetInt(HudSettings.BackgroundTextColor['r']); Get_ConVar("lpc_backgroundtextcolor_g"):SetInt(HudSettings.BackgroundTextColor['g']); Get_ConVar("lpc_backgroundtextcolor_b"):SetInt(HudSettings.BackgroundTextColor['b'])
+			end
+		LarrysPropCounterSettings:AddItem(ResetHUDColorSettings)
 	end )
 end )
