@@ -8,9 +8,9 @@
 -- This litteraly prevents this from being a backdoor
 local LionSettings = {
 	-- Sets the HUD as enabled or disable by default. 1 = enabled, 0 = disabled.
-	["HUDEnable"] = 1,
+	["enable"] = 1,
 	-- Sets the default size the HUD should be. 0-10 is allowed, 1 is default.
-	["Scale"] = 1,
+	["scale"] = 1,
 	-- Default Header color. The background behind 'Props:'. - Default: 0,191,255,255
 	HeaderColor = {
 		['r'] = 25,
@@ -32,8 +32,8 @@ local LionSettings = {
 
 local _ScrW, _ScrH = ScrW(),ScrH()
 local p = 0
-CreateClientConVar("lion_hudenabled", LionSettings["HUDEnable"], true, false, "", 0, 1)
-CreateClientConVar("lion_scale", LionSettings["Scale"], true, false, "", 0, 10)
+CreateClientConVar("lion_hudenabled", LionSettings["enable"], true, false, "", 0, 1)
+CreateClientConVar("lion_scale", LionSettings["scale"], true, false, "", 0, 10)
 CreateClientConVar("lion_verticallocation", LionSettings["VerticalLocation"], true, false, "", 1, _ScrH)
 CreateClientConVar("lion_horizontallocation", LionSettings["HorizontalLocation"], true, false, "", 1, _ScrW)
 CreateClientConVar("lion_headercolor_r", LionSettings.HeaderColor['r'], true, false, "", 0, 255 )
@@ -107,14 +107,16 @@ hook.Add( "PopulateToolMenu", "PropCounterSettings", function()
 			HeaderColor:SetWangs(true)
 			HeaderColor:SetColor(Color(header_red,header_green,header_blue,header_alpha))
 			HeaderColor.ValueChanged = function(value)
-			local color = HeaderColor:GetColor()
-			-- Change HUD color values.
-			header_red,header_green,header_blue,header_alpha = color['r'],color['g'],color['b'],color['a']
-			-- Updates convar so value can be saved.
-			GetConVar("lion_headercolor_r"):SetInt(header_red)
-			GetConVar("lion_headercolor_g"):SetInt(header_green)
-			GetConVar("lion_headercolor_b"):SetInt(header_blue)
-			GetConVar("lion_headercolor_a"):SetInt(header_alpha)
+			timer.Simple(0.1, function()
+				local color = HeaderColor:GetColor()
+				-- Change HUD color values.
+				header_red,header_green,header_blue,header_alpha = color['r'],color['g'],color['b'],color['a']
+				-- Updates convar so value can be saved.
+				GetConVar("lion_headercolor_r"):SetInt(header_red)
+				GetConVar("lion_headercolor_g"):SetInt(header_green)
+				GetConVar("lion_headercolor_b"):SetInt(header_blue)
+				GetConVar("lion_headercolor_a"):SetInt(header_alpha)
+			end)
 		end
 		ColorWheelPanel:AddItem(HeaderColor)
 
@@ -126,15 +128,30 @@ hook.Add( "PopulateToolMenu", "PropCounterSettings", function()
 			HeaderTextColor:SetWangs(true)
 			HeaderTextColor:SetColor(Color(headertext_red,headertext_green,headertext_blue))
 			HeaderTextColor.ValueChanged = function(value)
-			local color = HeaderTextColor:GetColor()
-			-- Change HUD color values.
-			headertext_red,headertext_green,headertext_blue = color['r'],color['g'],color['b']
-			-- Updates convar so value can be saved.
-			GetConVar("lion_headertextcolor_r"):SetInt(headertext_red)
-			GetConVar("lion_headertextcolor_g"):SetInt(headertext_green)
-			GetConVar("lion_headertextcolor_b"):SetInt(headertext_blue)
+			timer.Simple(0.1, function()
+				local color = HeaderTextColor:GetColor()
+				-- Change HUD color values.
+				headertext_red,headertext_green,headertext_blue = color['r'],color['g'],color['b']
+				-- Updates convar so value can be saved.
+				GetConVar("lion_headertextcolor_r"):SetInt(headertext_red)
+				GetConVar("lion_headertextcolor_g"):SetInt(headertext_green)
+				GetConVar("lion_headertextcolor_b"):SetInt(headertext_blue)
+			end)
 		end
 		ColorWheelPanel:AddItem(HeaderTextColor)
+		-- Creates a button that resets clients HUD color settings to config defaults.
+		local ResetColor = vgui.Create("DButton")
+		ResetColor:SetText("Reset HUD Color to default.")
+		ResetColor.DoClick = function()
+			-- Resets HUD Header Header color.
+			header_red,header_green,header_blue,header_alpha = LionSettings.HeaderColor['r'],LionSettings.HeaderColor['g'],LionSettings.HeaderColor['b'],LionSettings.HeaderColor['a']
+			-- Resets HUD Header Text color.
+			headertext_red,headertext_green,headertext_blue = LionSettings.HeaderTextColor['r'],LionSettings.HeaderTextColor['g'],LionSettings.HeaderTextColor['b']
+			-- Sets the color panel(s) back to default.
+			HeaderColor:SetColor(Color(header_red,header_green,header_blue,header_alpha))
+			HeaderTextColor:SetColor(Color(headertext_red,headertext_green,headertext_blue))
+		end
+		ColorWheelPanel:AddItem(ResetColor)
 	end )
 	-- Adds prop counter settings q-menu.
 	spawnmenu.AddToolMenuOption( "Utilities", "#Lion's Prop Counter", "Prop_Counter_Settings", "#Prop Counter Settings", "", "", function(LionsPropCounter)
@@ -194,32 +211,19 @@ hook.Add( "PopulateToolMenu", "PropCounterSettings", function()
 		local ResetLionSettings = vgui.Create("DButton")
 			ResetLionSettings:SetText("Reset Settings to default.")
 			ResetLionSettings.DoClick = function(self, value)
-				hudenabled, lionScale = tobool(LionSettings["HUDEnable"]),LionSettings["Scale"]
-				GetConVar("lion_hudenabled"):SetBool(tobool(LionSettings["HUDEnable"]))
-				GetConVar("lion_scale"):SetFloat(LionSettings["Scale"])
+				hudenabled, lionScale = tobool(LionSettings["enable"]),LionSettings["scale"]
+				GetConVar("lion_hudenabled"):SetBool(tobool(LionSettings["enable"]))
+				GetConVar("lion_scale"):SetFloat(LionSettings["scale"])
 				vLocation, hLocation = LionSettings["VerticalLocation"],LionSettings["HorizontalLocation"]
 				GetConVar("lion_verticallocation"):SetInt(LionSettings["VerticalLocation"]); GetConVar("lion_horizontallocation"):SetInt(LionSettings["HorizontalLocation"])
 				generateCounterFonts()
 				hook.Remove( "HUDPaint", "lion_propcount_count" )
 				hook.Add("HUDPaint", "lion_propcount_count", function() PropCounter() end)
+				VerticalSlider:SetValue(vLocation)
+				HorizontalSlider:SetValue(hLocation)
+				ScaleSlider:SetValue(lionScale)
+				EnablePropCounterButton:SetValue(hudenabled)
 			end
 		LionsPropCounter:AddItem(ResetLionSettings)
-		-- Creates a button that resets clients HUD color settings to config defaults.
-		local ResetHUDColorSettings = vgui.Create("DButton")
-			ResetHUDColorSettings:SetText("Reset HUD Color Settings to default.")
-			ResetHUDColorSettings.DoClick = function(self, value)
-				-- Resets HUD Header Header color.
-				header_red,header_green,header_blue,header_alpha = LionSettings.HeaderColor['r'],LionSettings.HeaderColor['g'],LionSettings.HeaderColor['b'],LionSettings.HeaderColor['a']
-				GetConVar("lion_headercolor_r"):SetInt(LionSettings.HeaderColor['r'])
-				GetConVar("lion_headercolor_g"):SetInt(LionSettings.HeaderColor['g'])
-				GetConVar("lion_headercolor_b"):SetInt(LionSettings.HeaderColor['b'])
-				GetConVar("lion_headercolor_a"):SetInt(LionSettings.HeaderColor['a'])
-				-- Resets HUD Header Text color.
-				headertext_red,headertext_green,headertext_blue = LionSettings.HeaderTextColor['r'],LionSettings.HeaderTextColor['g'],LionSettings.HeaderTextColor['b']
-				GetConVar("lion_headertextcolor_r"):SetInt(LionSettings.HeaderTextColor['r'])
-				GetConVar("lion_headertextcolor_g"):SetInt(LionSettings.HeaderTextColor['g'])
-				GetConVar("lion_headertextcolor_b"):SetInt(LionSettings.HeaderTextColor['b'])
-			end
-		LionsPropCounter:AddItem(ResetHUDColorSettings)
 	end )
 end )
